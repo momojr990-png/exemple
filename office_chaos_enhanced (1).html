@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Office Chaos — Enhanced Edition</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#7dd3fc;
+      --muted:#9aa4b2;
+      --glass:rgba(255,255,255,0.03);
+      --card-back:#1e293b;
+      --card-front:#0ea5e9;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background:linear-gradient(180deg,#071023 0%, #081428 60%);
+      color:#e6eef6;
+      min-height:100vh;
+      padding:20px;
+    }
+
+    /* Setup Modal */
+    .modal{
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.9);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:1000;
+    }
+    .modal-content{
+      background:var(--card);
+      padding:40px;
+      border-radius:16px;
+      max-width:500px;
+      width:90%;
+      box-shadow:0 20px 60px rgba(0,0,0,0.8);
+    }
+    .modal h2{margin-bottom:24px;color:var(--accent);text-align:center}
+    .modal label{display:block;margin-top:16px;font-size:14px;color:var(--muted)}
+    .modal input{
+      width:100%;
+      padding:12px;
+      margin-top:6px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.1);
+      background:rgba(255,255,255,0.05);
+      color:#fff;
+      font-size:16px;
+    }
+    .modal button{
+      width:100%;
+      padding:14px;
+      margin-top:24px;
+      background:linear-gradient(135deg,var(--accent),#48b5e0);
+      border:none;
+      border-radius:8px;
+      color:#032033;
+      font-size:16px;
+      font-weight:700;
+      cursor:pointer;
+      transition:transform 0.2s;
+    }
+    .modal button:hover{transform:scale(1.02)}
+
+    /* Header */
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:24px;
+      padding:20px;
+      background:var(--card);
+      border-radius:12px;
+    }
+    .team-display{
+      display:flex;
+      gap:40px;
+      align-items:center;
+    }
+    .team-score{
+      text-align:center;
+    }
+    .team-name{
+      font-size:20px;
+      font-weight:700;
+      color:var(--accent);
+    }
+    .score-big{
+      font-size:48px;
+      font-weight:900;
+      background:linear-gradient(135deg,#7dd3fc,#48b5e0);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+
+    /* Card Flip Container */
+    .card-container{
+      perspective:1000px;
+      width:400px;
+      height:300px;
+      margin:40px auto;
+      cursor:pointer;
+    }
+    .card-flip{
+      width:100%;
+      height:100%;
+      position:relative;
+      transform-style:preserve-3d;
+      transition:transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+    .card-flip.flipped{
+      transform:rotateY(180deg);
+    }
+    .card-face{
+      position:absolute;
+      width:100%;
+      height:100%;
+      backface-visibility:hidden;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:30px;
+      box-shadow:0 10px 40px rgba(0,0,0,0.6);
+    }
+    .card-back{
+      background:linear-gradient(135deg,var(--card-back),#334155);
+      border:3px solid rgba(255,255,255,0.1);
+    }
+    .card-back-design{
+      width:100%;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:20px;
+    }
+    .card-logo{
+      font-size:48px;
+      font-weight:900;
+      color:var(--accent);
+      text-shadow:0 0 20px rgba(125,211,252,0.5);
+    }
+    .card-pattern{
+      width:80%;
+      height:80%;
+      border:2px dashed rgba(255,255,255,0.2);
+      border-radius:12px;
+      position:absolute;
+    }
+    .card-front{
+      background:linear-gradient(135deg,#0ea5e9,#0284c7);
+      transform:rotateY(180deg);
+      color:#fff;
+      text-align:center;
+      font-size:20px;
+      font-weight:600;
+      line-height:1.6;
+    }
+
+    /* Controls */
+    .controls{
+      text-align:center;
+      margin:30px 0;
+    }
+    .btn{
+      padding:14px 32px;
+      margin:0 8px;
+      border:none;
+      border-radius:8px;
+      font-size:16px;
+      font-weight:600;
+      cursor:pointer;
+      transition:all 0.3s;
+      box-shadow:0 4px 12px rgba(0,0,0,0.3);
+    }
+    .btn-primary{
+      background:linear-gradient(135deg,var(--accent),#48b5e0);
+      color:#032033;
+    }
+    .btn-primary:hover{
+      transform:translateY(-2px);
+      box-shadow:0 6px 20px rgba(125,211,252,0.4);
+    }
+    .btn-secondary{
+      background:rgba(255,255,255,0.05);
+      color:#fff;
+      border:1px solid rgba(255,255,255,0.1);
+    }
+    .btn-secondary:hover{
+      background:rgba(255,255,255,0.1);
+    }
+    .btn:disabled{
+      opacity:0.4;
+      cursor:not-allowed;
+    }
+
+    /* Timer */
+    .timer-container{
+      text-align:center;
+      margin:30px 0;
+    }
+    .timer-circle{
+      width:120px;
+      height:120px;
+      margin:0 auto 16px;
+      position:relative;
+    }
+    .timer-svg{
+      transform:rotate(-90deg);
+    }
+    .timer-circle-bg{
+      fill:none;
+      stroke:rgba(255,255,255,0.1);
+      stroke-width:8;
+    }
+    .timer-circle-progress{
+      fill:none;
+      stroke:var(--accent);
+      stroke-width:8;
+      stroke-linecap:round;
+      transition:stroke-dashoffset 1s linear;
+    }
+    .timer-text{
+      position:absolute;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      font-size:32px;
+      font-weight:900;
+      color:var(--accent);
+    }
+
+    /* Game area */
+    .game-area{
+      max-width:1400px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:1fr 2fr 1fr;
+      gap:20px;
+    }
+    .panel{
+      background:var(--card);
+      padding:20px;
+      border-radius:12px;
+    }
+    .panel h3{
+      color:var(--accent);
+      margin-bottom:16px;
+    }
+
+    /* Skills */
+    .skills-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      max-height:400px;
+      overflow-y:auto;
+    }
+    .skill-btn{
+      padding:12px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid rgba(255,255,255,0.05);
+      border-radius:8px;
+      color:#fff;
+      text-align:left;
+      cursor:pointer;
+      transition:all 0.3s;
+    }
+    .skill-btn:hover{
+      background:rgba(125,211,252,0.1);
+      border-color:var(--accent);
+    }
+    .skill-btn.selected{
+      background:rgba(125,211,252,0.2);
+      border-color:var(--accent);
+      box-shadow:0 0 12px rgba(125,211,252,0.3);
+    }
+    .skill-btn:disabled{
+      opacity:0.4;
+      cursor:not-allowed;
+    }
+
+    /* Response area */
+    textarea{
+      width:100%;
+      min-height:120px;
+      padding:12px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.1);
+      background:rgba(255,255,255,0.05);
+      color:#fff;
+      font-size:14px;
+      resize:vertical;
+      font-family:inherit;
+    }
+    textarea:disabled{
+      opacity:0.6;
+      cursor:not-allowed;
+      background:rgba(255,255,255,0.02);
+    }
+
+    /* Winner modal */
+    .winner-modal{
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.95);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:2000;
+    }
+    .winner-modal.show{display:flex}
+    .winner-content{
+      text-align:center;
+      padding:60px;
+      background:linear-gradient(135deg,#0ea5e9,#7dd3fc);
+      border-radius:20px;
+      animation:bounceIn 0.6s;
+    }
+    .winner-content h1{
+      font-size:64px;
+      margin-bottom:20px;
+      color:#fff;
+      text-shadow:0 4px 20px rgba(0,0,0,0.3);
+    }
+    .winner-content p{
+      font-size:32px;
+      color:#fff;
+      font-weight:700;
+    }
+    @keyframes bounceIn{
+      0%{transform:scale(0.3);opacity:0}
+      50%{transform:scale(1.05)}
+      100%{transform:scale(1);opacity:1}
+    }
+
+    /* Status */
+    .status{
+      text-align:center;
+      padding:12px;
+      background:rgba(255,255,255,0.05);
+      border-radius:8px;
+      margin:20px 0;
+      color:var(--muted);
+    }
+
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+
+  <!-- Setup Modal -->
+  <div id="setupModal" class="modal">
+    <div class="modal-content">
+      <h2>⚡ Game Setup</h2>
+      <label>Team 1 Name</label>
+      <input type="text" id="team1Name" placeholder="The Warriors" value="Team A">
+      <label>Team 2 Name</label>
+      <input type="text" id="team2Name" placeholder="The Champions" value="Team B">
+      <button onclick="startGame()">Start Game</button>
+    </div>
+  </div>
+
+  <!-- Header with scores -->
+  <header>
+    <div class="team-display">
+      <div class="team-score">
+        <div class="team-name" id="displayTeam1">Équipe A</div>
+        <div class="score-big" id="score1">0</div>
+      </div>
+      <div style="font-size:32px;color:var(--muted)">VS</div>
+      <div class="team-score">
+        <div class="team-name" id="displayTeam2">Équipe B</div>
+        <div class="score-big" id="score2">0</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:14px;color:var(--muted)">First to</div>
+      <div style="font-size:32px;font-weight:700;color:var(--accent)">10 points</div>
+    </div>
+  </header>
+
+  <!-- Status -->
+  <div class="status" id="status">Click "Draw Situation" to start</div>
+
+  <!-- Card with flip animation -->
+  <div class="card-container">
+    <div class="card-flip" id="cardFlip">
+      <div class="card-face card-back">
+        <div class="card-pattern"></div>
+        <div class="card-back-design">
+          <div class="card-logo">OFFICE</div>
+          <div style="font-size:24px;color:var(--muted);font-weight:600">CHAOS</div>
+          <div style="font-size:14px;color:var(--muted);margin-top:20px">Click to reveal</div>
+        </div>
+      </div>
+      <div class="card-face card-front" id="cardQuestion">
+        Click "Draw Situation"
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn btn-primary" onclick="drawSituation()">🎲 Draw Situation</button>
+    <button class="btn btn-secondary" onclick="revealCard()">🔄 Reveal Card</button>
+    <button class="btn btn-secondary" onclick="startTimer()">⏱️ Start Timer (30s)</button>
+  </div>
+
+  <!-- Timer -->
+  <div class="timer-container" id="timerContainer" style="display:none">
+    <div class="timer-circle">
+      <svg class="timer-svg" width="120" height="120">
+        <circle class="timer-circle-bg" cx="60" cy="60" r="54"></circle>
+        <circle class="timer-circle-progress" id="timerProgress" cx="60" cy="60" r="54" 
+                stroke-dasharray="339.292" stroke-dashoffset="0"></circle>
+      </svg>
+      <div class="timer-text" id="timerText">30</div>
+    </div>
+    <div style="color:var(--muted)">Time remaining</div>
+  </div>
+
+  <!-- Game Area -->
+  <div class="game-area">
+    <!-- Team 1 -->
+    <div class="panel">
+      <h3 id="team1Title">Team A</h3>
+      <div class="skills-grid" id="skills1"></div>
+      <div style="margin-top:20px">
+        <textarea id="response1" placeholder="Your answer in English..."></textarea>
+        <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="lockTeam(1)">🔒 Lock Answer</button>
+      </div>
+    </div>
+
+    <!-- Center controls -->
+    <div class="panel">
+      <h3 style="text-align:center">Manager Controls</h3>
+      <div class="controls">
+        <button class="btn btn-primary" onclick="givePoint(1)">+1 Point Team 1</button>
+        <button class="btn btn-primary" onclick="givePoint(2)">+1 Point Team 2</button>
+      </div>
+      <div style="margin-top:30px">
+        <button class="btn btn-secondary" style="width:100%" onclick="nextRound()">➡️ Next Round</button>
+        <button class="btn btn-secondary" style="width:100%;margin-top:10px" onclick="location.reload()">🔄 Reset Game</button>
+      </div>
+    </div>
+
+    <!-- Team 2 -->
+    <div class="panel">
+      <h3 id="team2Title">Team B</h3>
+      <div class="skills-grid" id="skills2"></div>
+      <div style="margin-top:20px">
+        <textarea id="response2" placeholder="Your answer in English..."></textarea>
+        <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="lockTeam(2)">🔒 Lock Answer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Winner Modal -->
+  <div id="winnerModal" class="winner-modal">
+    <div class="winner-content">
+      <h1>🏆</h1>
+      <p id="winnerText">Team A Wins!</p>
+    </div>
+  </div>
+
+  <script>
+    // Game data
+    const situations = [
+      "Your coworker blames you for their mistake.",
+      "A client is angry because of a late delivery.",
+      "Your teammate refuses to communicate.",
+      "Your boss asks for a last-minute presentation.",
+      "Two colleagues are arguing loudly.",
+      "An important file disappears before a meeting.",
+      "A remote colleague always misses deadlines.",
+      "You receive a confusing email from a client.",
+      "A project scope suddenly doubles.",
+      "You notice a teammate is demotivated and quiet.",
+      "The main server crashes during a presentation.",
+      "A new team member doesn't understand the processes.",
+      "Your team has conflicting opinions on strategy.",
+      "A competitor launches a similar product before you.",
+      "Budget resources are cut by 40%."
+    ];
+
+    const softSkills = [
+      "Communication","Teamwork","Problem solving","Leadership","Adaptability",
+      "Conflict resolution","Time management","Empathy","Critical thinking","Decision making"
+    ];
+
+    // Game state
+    let team1Name = "Team A";
+    let team2Name = "Team B";
+    let score1 = 0;
+    let score2 = 0;
+    let currentSituation = "";
+    let isCardFlipped = false;
+    let timerInterval = null;
+    let locked1 = false;
+    let locked2 = false;
+
+    // Initialize skills
+    function initSkills() {
+      const skills1 = document.getElementById('skills1');
+      const skills2 = document.getElementById('skills2');
+      
+      softSkills.forEach(skill => {
+        const btn1 = document.createElement('button');
+        btn1.className = 'skill-btn';
+        btn1.textContent = skill;
+        btn1.onclick = () => selectSkill(1, btn1);
+        skills1.appendChild(btn1);
+
+        const btn2 = document.createElement('button');
+        btn2.className = 'skill-btn';
+        btn2.textContent = skill;
+        btn2.onclick = () => selectSkill(2, btn2);
+        skills2.appendChild(btn2);
+      });
+    }
+
+    function selectSkill(team, btn) {
+      const container = team === 1 ? document.getElementById('skills1') : document.getElementById('skills2');
+      const textarea = team === 1 ? document.getElementById('response1') : document.getElementById('response2');
+      const skillName = btn.textContent;
+      
+      container.querySelectorAll('.skill-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      
+      // Auto-insert skill name in textarea
+      textarea.value = `We will use ${skillName} because `;
+      textarea.focus();
+      // Move cursor to end
+      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    }
+
+    function startGame() {
+      team1Name = document.getElementById('team1Name').value || "Team A";
+      team2Name = document.getElementById('team2Name').value || "Team B";
+      
+      document.getElementById('displayTeam1').textContent = team1Name;
+      document.getElementById('displayTeam2').textContent = team2Name;
+      document.getElementById('team1Title').textContent = team1Name;
+      document.getElementById('team2Title').textContent = team2Name;
+      
+      document.getElementById('setupModal').style.display = 'none';
+      initSkills();
+    }
+
+    function drawSituation() {
+      currentSituation = situations[Math.floor(Math.random() * situations.length)];
+      document.getElementById('cardQuestion').textContent = currentSituation;
+      document.getElementById('status').textContent = "New situation drawn! Reveal the card.";
+      
+      // Reset card
+      isCardFlipped = false;
+      document.getElementById('cardFlip').classList.remove('flipped');
+      locked1 = false;
+      locked2 = false;
+    }
+
+    function revealCard() {
+      if (!currentSituation) {
+        alert("Draw a situation first!");
+        return;
+      }
+      isCardFlipped = !isCardFlipped;
+      document.getElementById('cardFlip').classList.toggle('flipped');
+      if (isCardFlipped) {
+        document.getElementById('status').textContent = "Teams choose their soft skill and respond!";
+      }
+    }
+
+    function startTimer() {
+      document.getElementById('timerContainer').style.display = 'block';
+      let timeLeft = 30;
+      const progress = document.getElementById('timerProgress');
+      const text = document.getElementById('timerText');
+      const circumference = 339.292;
+      
+      clearInterval(timerInterval);
+      progress.style.strokeDashoffset = 0;
+      
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        text.textContent = timeLeft;
+        const offset = circumference - (timeLeft / 30) * circumference;
+        progress.style.strokeDashoffset = offset;
+        
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          document.getElementById('status').textContent = "⏰ Time's up! Manager decides.";
+        }
+      }, 1000);
+    }
+
+    function lockTeam(team) {
+      const textarea = team === 1 ? document.getElementById('response1') : document.getElementById('response2');
+      const skillsContainer = team === 1 ? document.getElementById('skills1') : document.getElementById('skills2');
+      const selectedSkill = skillsContainer.querySelector('.skill-btn.selected');
+      
+      if (!selectedSkill) {
+        alert(`${team === 1 ? team1Name : team2Name}: Please select a soft skill first!`);
+        return;
+      }
+      
+      if (!textarea.value.trim()) {
+        alert(`${team === 1 ? team1Name : team2Name}: Please write your answer!`);
+        return;
+      }
+      
+      if (team === 1) {
+        locked1 = true;
+        // Disable textarea and skills for team 1
+        textarea.disabled = true;
+        skillsContainer.querySelectorAll('.skill-btn').forEach(btn => btn.disabled = true);
+      } else {
+        locked2 = true;
+        // Disable textarea and skills for team 2
+        textarea.disabled = true;
+        skillsContainer.querySelectorAll('.skill-btn').forEach(btn => btn.disabled = true);
+      }
+      
+      alert(`${team === 1 ? team1Name : team2Name} locked their answer!`);
+      
+      if (locked1 && locked2) {
+        document.getElementById('status').textContent = "Both teams answered! Manager can award the point.";
+        clearInterval(timerInterval);
+      }
+    }
+
+    function givePoint(team) {
+      if (team === 1) {
+        score1++;
+        document.getElementById('score1').textContent = score1;
+        document.getElementById('status').textContent = `${team1Name} wins 1 point!`;
+      } else {
+        score2++;
+        document.getElementById('score2').textContent = score2;
+        document.getElementById('status').textContent = `${team2Name} wins 1 point!`;
+      }
+      
+      checkWinner();
+    }
+
+    function checkWinner() {
+      if (score1 >= 10) {
+        showWinner(team1Name);
+      } else if (score2 >= 10) {
+        showWinner(team2Name);
+      }
+    }
+
+    function showWinner(teamName) {
+      document.getElementById('winnerText').textContent = `${teamName} Wins the Game! 🎉`;
+      document.getElementById('winnerModal').classList.add('show');
+      setTimeout(() => {
+        document.getElementById('winnerModal').classList.remove('show');
+      }, 5000);
+    }
+
+    function nextRound() {
+      const textarea1 = document.getElementById('response1');
+      const textarea2 = document.getElementById('response2');
+      const skills1 = document.getElementById('skills1');
+      const skills2 = document.getElementById('skills2');
+      
+      textarea1.value = '';
+      textarea2.value = '';
+      textarea1.disabled = false;
+      textarea2.disabled = false;
+      
+      document.querySelectorAll('.skill-btn').forEach(btn => {
+        btn.classList.remove('selected');
+        btn.disabled = false;
+      });
+      
+      document.getElementById('cardFlip').classList.remove('flipped');
+      document.getElementById('timerContainer').style.display = 'none';
+      clearInterval(timerInterval);
+      currentSituation = "";
+      locked1 = false;
+      locked2 = false;
+      document.getElementById('status').textContent = "Next round! Draw a new situation.";
+    }
+
+    // Click card to flip
+    document.querySelector('.card-container').onclick = revealCard;
+  </script>
+</body>
+</html>
